@@ -87,6 +87,19 @@ function renderSearchFrame(ctx: CanvasRenderingContext2D, options: {
   }
   ctx.fillRect(0, 0, width, height);
 
+  // --- Calculate vertical centering ---
+  const titleHeight = showTitle ? 80 : 0; // 64px font + margin
+  const titleMarginBottom = showTitle ? 48 : 0; // mb-12 = 48px
+  const boxHeight = 80;
+  const boxMarginBottom = showButtons ? 48 : 0; // mt-12 = 48px
+  const buttonsHeight = showButtons ? 48 : 0;
+  const blockHeight =
+    (showTitle ? titleHeight + titleMarginBottom : 0) +
+    boxHeight +
+    (showButtons ? boxMarginBottom + buttonsHeight : 0);
+  const blockTop = (height - blockHeight) / 2;
+  let currentY = blockTop;
+
   // Title
   if (showTitle) {
     ctx.save();
@@ -94,15 +107,15 @@ function renderSearchFrame(ctx: CanvasRenderingContext2D, options: {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#222';
     ctx.globalAlpha = 0.95;
-    ctx.fillText('Search', width / 2, 180);
+    ctx.fillText('Search', width / 2, currentY + 64); // 64px font baseline
     ctx.restore();
+    currentY += titleHeight + titleMarginBottom;
   }
 
   // Search box
   const boxWidth = width * 0.7;
-  const boxHeight = 80;
   const boxX = (width - boxWidth) / 2;
-  const boxY = showTitle ? 260 : width / 2 - boxHeight / 2;
+  const boxY = currentY;
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(boxX + 24, boxY);
@@ -200,19 +213,19 @@ function renderSearchFrame(ctx: CanvasRenderingContext2D, options: {
     ctx.strokeStyle = '#e5e7eb';
     // Search button
     ctx.beginPath();
-    ctx.roundRect(width / 2 - 120, boxY + boxHeight + 60, 110, 48, 18);
+    ctx.roundRect(width / 2 - 120, boxY + boxHeight + boxMarginBottom, 110, 48, 18);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#444';
-    ctx.fillText('Search', width / 2 - 65, boxY + boxHeight + 84);
+    ctx.fillText('Search', width / 2 - 65, boxY + boxHeight + boxMarginBottom + 24);
     // Lucky button
     ctx.fillStyle = '#f9fafb';
     ctx.beginPath();
-    ctx.roundRect(width / 2 + 10, boxY + boxHeight + 60, 150, 48, 18);
+    ctx.roundRect(width / 2 + 10, boxY + boxHeight + boxMarginBottom, 150, 48, 18);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#444';
-    ctx.fillText("I'm Feeling Lucky", width / 2 + 85, boxY + boxHeight + 84);
+    ctx.fillText("I'm Feeling Lucky", width / 2 + 85, boxY + boxHeight + boxMarginBottom + 24);
     ctx.restore();
   }
 }
