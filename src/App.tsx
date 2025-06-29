@@ -264,8 +264,6 @@ async function exportTypingAnimation({
   getCurrentBackground,
   onProgress,
 }: any) {
-  // Always set loopAnimation to false for export
-  const loopAnimation = false;
   const width = canvas.width;
   const height = canvas.height;
   const ctx = canvas.getContext('2d');
@@ -434,7 +432,7 @@ async function exportTypingAnimation({
       }
       case 'pause': {
         // If keepLastString is enabled and this is the last string, end after pause
-        if (keepLastString && currentStringIndex === strings.length - 1 && !loopAnimation) {
+        if (keepLastString && currentStringIndex === strings.length - 1) {
           if (elapsed - pauseStart >= pauseBetween) {
             done = true;
           }
@@ -460,10 +458,8 @@ async function exportTypingAnimation({
       }
       case 'fastDeleteClear': {
         // Move to next string
-        const nextIndex = (currentStringIndex + 1) % strings.length;
-        if (!loopAnimation && nextIndex === 0 && currentStringIndex > 0) {
-          done = true;
-        } else if (keepLastString && nextIndex === 0 && !loopAnimation) {
+        const nextIndex = currentStringIndex + 1;
+        if (nextIndex >= strings.length) {
           done = true;
         } else {
           currentStringIndex = nextIndex;
@@ -479,10 +475,8 @@ async function exportTypingAnimation({
           displayText = strings[currentStringIndex].substring(0, currentCharIndex);
         } else {
           // Move to next string
-          const nextIndex = (currentStringIndex + 1) % strings.length;
-          if (!loopAnimation && nextIndex === 0 && currentStringIndex > 0) {
-            done = true;
-          } else if (keepLastString && nextIndex === 0 && !loopAnimation) {
+          const nextIndex = currentStringIndex + 1;
+          if (nextIndex >= strings.length) {
             done = true;
           } else {
             currentStringIndex = nextIndex;
