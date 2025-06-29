@@ -537,7 +537,7 @@ function App() {
   const [showButtons, setShowButtons] = useState(typeof initial.showButtons === 'boolean' ? initial.showButtons : true);
   const [iconPosition, setIconPosition] = useState<'left' | 'right'>(initial.iconPosition === 'right' ? 'right' : 'left');
   const [searchIcon, setSearchIcon] = useState(typeof initial.searchIcon === 'string' ? initial.searchIcon : '🔍');
-  const [placeholderText, setPlaceholderText] = useState(typeof initial.placeholderText === 'string' ? initial.placeholderText : 'Search Google or type a URL');
+  const [placeholderText, setPlaceholderText] = useState(typeof initial.placeholderText === 'string' ? initial.placeholderText : 'Search or type a URL');
   const [selectedFont, setSelectedFont] = useState(typeof initial.selectedFont === 'string' ? initial.selectedFont : 'Inter, sans-serif');
   const [backgroundStyle, setBackgroundStyle] = useState<'solid' | 'gradient'>(initial.backgroundStyle === 'gradient' ? 'gradient' : 'solid');
   const [gradientType, setGradientType] = useState(typeof initial.gradientType === 'string' ? initial.gradientType : 'blue-purple');
