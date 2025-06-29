@@ -6,22 +6,34 @@ A beautiful, customizable React app that simulates search engine typing animatio
 
 ## Features
 
-- **Realistic Typing Animation:** Simulates typing and deleting multiple search queries with adjustable speed and pause.
-- **Customizable Search Strings:** Add, remove, and reorder search queries.
-- **Modern UI:** Inspired by search engines, with a clean, responsive design.
+- **Realistic Typing Animation:** Simulates typing and deleting multiple search queries with adjustable typing speed, delete speed, and pause between queries.
+- **Customizable Search Strings:** Add, remove, and reorder search queries using the left sidebar.
+- **Modern UI:** Inspired by search engines, with a clean, responsive, and production-ready design.
 - **Display Options:**
-  - Toggle search title and buttons
-  - Choose search icon (emoji)
-  - Set placeholder text
-  - Select icon position (left/right)
+  - Toggle search title ("Search") and search buttons ("Search" and "I'm Feeling Lucky")
+  - Choose your search icon using an emoji picker
+  - Set custom placeholder text
+  - Select icon position (left or right of the search box)
 - **Animation Controls:**
-  - Play, pause, and reset animation
-  - Loop animation or keep the last string
-  - Fast delete (select all & delete)
-- **Styling:**
-  - Choose from multiple background gradients or solid color
-  - Select from a variety of modern fonts
-- **Settings Persistence:** All settings are saved in your browser's localStorage.
+  - Play, pause, and reset the typing animation
+  - Loop animation or keep the last string visible
+  - Fast delete mode (select all & delete in one go)
+- **Styling & Appearance:**
+  - Choose from multiple background gradients or a solid color for the search area
+  - Select from a variety of modern, production fonts (Inter, Poppins, Roboto, Open Sans, Lato, Montserrat, Source Sans Pro, Nunito, Work Sans, IBM Plex Sans, Playfair Display)
+  - Live font preview in the settings panel
+- **Export as Video:**
+  - Export your typing animation as a high-quality `.webm` video (with progress indicator)
+  - All animation and appearance settings are reflected in the export
+- **Settings Persistence:**
+  - All settings (queries, animation, appearance, etc.) are automatically saved in your browser's localStorage and restored on reload
+- **Sidebars for Productivity:**
+  - Left sidebar: manage your list of search queries (add, remove, reorder)
+  - Right sidebar: adjust animation, display, background, and typography settings
+- **Accessibility & UX:**
+  - Keyboard navigation for adding queries
+  - Responsive layout and smooth transitions
+  - Glassy, modern sidebars and cards
 
 ## Getting Started
 
