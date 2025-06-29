@@ -40,3 +40,25 @@
 * {
   transition: opacity 0.1s ease-in-out;
 }
+
+/* Glassy sidebar/card backgrounds */
+.glass {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.04);
+}
+
+/* Modern header/footer tweaks */
+header, footer {
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+}
+
+/* Hide scrollbars for sidebars */
+::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 8px;
+}

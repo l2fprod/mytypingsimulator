@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Plus, Trash2, Settings, ChevronUp, ChevronDown } from 'lucide-react';
+import { Play, Pause, Square, Plus, Trash2, Settings, ChevronUp, ChevronDown, Monitor, Type } from 'lucide-react';
 
 interface TypingState {
   isPlaying: boolean;
@@ -22,6 +22,9 @@ const FONT_OPTIONS = [
   { name: 'IBM Plex Sans', value: 'IBM Plex Sans, sans-serif' },
   { name: 'Playfair Display', value: 'Playfair Display, serif' }
 ];
+
+// Sort font options alphabetically by name
+const SORTED_FONT_OPTIONS = [...FONT_OPTIONS].sort((a, b) => a.name.localeCompare(b.name));
 
 function App() {
   // Helper to get settings from localStorage
@@ -63,8 +66,8 @@ function App() {
     showCursor: true
   });
 
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const cursorIntervalRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const cursorIntervalRef = useRef<ReturnType<typeof setTimeout>>();
 
   const GRADIENT_OPTIONS = [
     { label: 'Blue → Purple', value: 'blue-purple', style: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)' },
@@ -317,10 +320,12 @@ function App() {
       const shouldDelete = !keepLastString || index < strings.length - 1;
       const deletionTime = shouldDelete ? string.length * deleteSpeed : 0;
       
-      // Pause between strings (except after the last string)
-      const pauseTime = index < strings.length - 1 ? pauseBetween : 0;
-      
-      totalTime += typingTime + deletionTime + pauseTime;
+      // Always add pause after typing, except if this is the last string and keepLastString is enabled
+      let pauseTime = pauseBetween;
+      if (keepLastString && index === strings.length - 1) {
+        pauseTime = 0;
+      }
+      totalTime += typingTime + pauseTime + deletionTime;
     });
     
     return totalTime;
@@ -339,47 +344,51 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Control Panel */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-semibold text-gray-900">Search Typing Simulator</h1>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handlePlay}
-                disabled={typingState.isPlaying || strings.length === 0}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                <Play className="w-4 h-4 mr-2" />
-                Play
-              </button>
-              <button
-                onClick={handlePause}
-                disabled={!typingState.isPlaying}
-                className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                <Pause className="w-4 h-4 mr-2" />
-                Pause
-              </button>
-              <button
-                onClick={handleReset}
-                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <Square className="w-4 h-4 mr-2" />
-                Reset
-              </button>
-            </div>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Modern Header Bar */}
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <img src="/vite.svg" alt="Logo" className="w-9 h-9 rounded-xl shadow" />
+            <span className="text-2xl font-extrabold tracking-tight text-gray-900">Typing Simulator</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handlePlay}
+              disabled={typingState.isPlaying || strings.length === 0}
+              className="group flex items-center justify-center w-10 h-10 bg-green-600 text-white rounded-full hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed shadow transition-colors"
+              title="Play"
+            >
+              <Play className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handlePause}
+              disabled={!typingState.isPlaying}
+              className="group flex items-center justify-center w-10 h-10 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed shadow transition-colors"
+              title="Pause"
+            >
+              <Pause className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleReset}
+              className="group flex items-center justify-center w-10 h-10 bg-red-500 text-white rounded-full hover:bg-red-600 shadow transition-colors"
+              title="Reset"
+            >
+              <Square className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Layout */}
-      <div className="flex h-screen">
+      <div className="flex-1 flex flex-row h-full max-h-[calc(100vh-56px)]">
         {/* Left Sidebar - Search Strings */}
-        <div className="w-80 bg-white shadow-sm border-r p-6 overflow-y-auto">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Search Strings</h3>
-          <div className="space-y-4">
+        <aside className="w-80 bg-white/70 backdrop-blur border-r border-gray-200 p-6 flex flex-col gap-4 shadow-inner rounded-tr-3xl rounded-br-3xl mt-4 mb-4 ml-2">
+          <div className="flex items-center mb-2 gap-2">
+            <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 text-blue-600 rounded-lg"><Plus className="w-4 h-4" /></span>
+            <h3 className="text-lg font-semibold text-gray-900">Search Strings</h3>
+          </div>
+          <div className="flex flex-col flex-1 min-h-0 gap-4">
             <div className="flex space-x-2">
               <input
                 type="text"
@@ -387,22 +396,22 @@ function App() {
                 onChange={(e) => setNewString(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && addString()}
                 placeholder="Add a search string..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 shadow"
               />
               <button
                 onClick={addString}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow"
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2 flex-1 min-h-0 overflow-y-auto pr-1">
               {strings.map((string, index) => (
                 <div 
                   key={index} 
-                  className="flex items-center justify-between p-3 bg-gray-100 rounded-lg transition-all"
+                  className="flex items-center justify-between p-3 bg-gray-100/80 rounded-lg transition-all shadow-sm"
                 >
-                  <span className="text-gray-700 flex-1">{string}</span>
+                  <span className="text-gray-700 flex-1 truncate">{string}</span>
                   <div className="flex items-center space-x-1">
                     <button
                       onClick={() => moveUp(index)}
@@ -433,7 +442,7 @@ function App() {
               ))}
             </div>
           </div>
-        </div>
+        </aside>
 
         {/* Center - Search Simulation */}
         <div className="flex-1 flex items-center justify-center p-8">
@@ -458,17 +467,17 @@ function App() {
                   <span className="text-2xl mr-4 flex items-center h-8">{searchIcon}</span>
                 )}
                 <div className="flex-1 relative min-h-[32px] flex items-center">
-                  <span className={`text-gray-900 text-lg leading-none ${isTextSelected ? 'bg-blue-200' : ''}`}>
+                  <span className={`text-gray-900 text-lg leading-none align-middle flex items-center ${isTextSelected ? 'bg-blue-200' : ''}`}
+                    style={{ minHeight: '1.5em' }}>
                     {displayText}
                     <span 
-                      className={`inline-block w-0.5 h-6 bg-blue-600 ml-1 ${
-                        typingState.showCursor ? 'opacity-100' : 'opacity-0'
-                      } transition-opacity`}
+                      className={`inline-block align-middle ml-1 transition-opacity duration-200 w-[2px] h-[1.25em] bg-blue-600 ${typingState.showCursor ? 'opacity-100' : 'opacity-0'}`}
+                      style={{ verticalAlign: 'middle' }}
                     />
                   </span>
                   {!displayText && (
-                    <span className="absolute left-0 top-0 flex items-center h-full pointer-events-none" style={{ color: '#d1d5db' }}>
-                      <span className="text-lg" style={{ color: '#d1d5db' }}>{placeholderText}</span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center h-full pointer-events-none pl-3" style={{ color: '#d1d5db' }}>
+                      <span className="text-lg leading-none" style={{ color: '#d1d5db' }}>{placeholderText}</span>
                     </span>
                   )}
                 </div>
@@ -493,17 +502,17 @@ function App() {
         </div>
 
         {/* Right Sidebar - Settings */}
-        <div className="w-80 bg-white shadow-sm border-l p-6 overflow-y-auto">
+        <aside className="w-80 bg-white/70 backdrop-blur border-l border-gray-200 p-6 flex flex-col gap-6 shadow-inner rounded-tl-3xl rounded-bl-3xl mt-4 mb-4 mr-2">
           <div className="space-y-6">
             {/* Animation Settings */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                  <Settings className="w-5 h-5 mr-2" />
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 whitespace-nowrap">
+                  <Settings className="w-5 h-5" />
                   Animation Settings
                 </h3>
                 <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
-                  Duration: {formatDuration(calculateVideoDuration())}
+                  {formatDuration(calculateVideoDuration())}
                 </div>
               </div>
               <div className="space-y-4">
@@ -587,7 +596,7 @@ function App() {
 
             {/* Display Settings */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Display Settings</h3>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 whitespace-nowrap"><span className="inline-flex items-center justify-center w-6 h-6 bg-purple-100 text-purple-600 rounded-lg"><Monitor className="w-4 h-4" /></span>Display Settings</h3>
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <input
@@ -676,7 +685,7 @@ function App() {
 
             {/* Typography Settings */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Typography</h3>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 whitespace-nowrap"><span className="inline-flex items-center justify-center w-6 h-6 bg-pink-100 text-pink-600 rounded-lg"><Type className="w-4 h-4" /></span>Typography</h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -687,7 +696,7 @@ function App() {
                     onChange={(e) => setSelectedFont(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    {FONT_OPTIONS.map((font) => (
+                    {SORTED_FONT_OPTIONS.map((font) => (
                       <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
                         {font.name}
                       </option>
@@ -703,8 +712,15 @@ function App() {
               </div>
             </div>
           </div>
-        </div>
+        </aside>
       </div>
+
+      {/* Modern Footer */}
+      <footer className="sticky bottom-0 z-20 w-full bg-white/80 backdrop-blur border-t shadow-sm py-2">
+        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+          © 2024 Frederic Lavigne. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }
