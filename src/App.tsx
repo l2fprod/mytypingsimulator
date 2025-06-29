@@ -251,7 +251,6 @@ async function exportTypingAnimation({
   typingSpeed,
   deleteSpeed,
   pauseBetween,
-  loopAnimation,
   keepLastString,
   fastDelete,
   showTitle,
@@ -265,6 +264,8 @@ async function exportTypingAnimation({
   getCurrentBackground,
   onProgress,
 }: any) {
+  // Always set loopAnimation to false for export
+  const loopAnimation = false;
   const width = canvas.width;
   const height = canvas.height;
   const ctx = canvas.getContext('2d');
@@ -361,6 +362,23 @@ async function exportTypingAnimation({
     throw e;
   }
   await startPromise;
+  // Add a 1s (1 second) pause at the beginning before typing starts
+  for (let i = 0; i < fps * 1; i++) {
+    renderSearchFrame(ctx, {
+      width,
+      height,
+      background: getCurrentBackground(),
+      fontFamily: selectedFont,
+      showTitle,
+      showButtons,
+      iconPosition,
+      searchIcon,
+      placeholderText,
+      displayText: '',
+      isTextSelected: false,
+    });
+    await new Promise(r => setTimeout(r, frameInterval));
+  }
   // Animation loop using requestAnimationFrame
   let elapsed = 0;
   let phase: 'typing' | 'pause' | 'deleting' | 'fastDeleteSelect' | 'fastDeleteClear' = 'typing';
@@ -891,7 +909,6 @@ function App() {
                     typingSpeed,
                     deleteSpeed,
                     pauseBetween,
-                    loopAnimation,
                     keepLastString,
                     fastDelete,
                     showTitle,
