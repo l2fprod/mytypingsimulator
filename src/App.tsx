@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Plus, Trash2, Settings, ChevronUp, ChevronDown, Monitor, Type } from 'lucide-react';
+import { Play, Pause, Square, Plus, Trash2, Settings, ChevronUp, ChevronDown, Monitor, Type, Download } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 
 interface TypingState {
@@ -26,6 +26,472 @@ const FONT_OPTIONS = [
 
 // Sort font options alphabetically by name
 const SORTED_FONT_OPTIONS = [...FONT_OPTIONS].sort((a, b) => a.name.localeCompare(b.name));
+
+// Helper to render a single frame of the search UI to a canvas
+function renderSearchFrame(ctx: CanvasRenderingContext2D, options: {
+  width: number;
+  height: number;
+  background: string;
+  fontFamily: string;
+  showTitle: boolean;
+  showButtons: boolean;
+  iconPosition: 'left' | 'right';
+  searchIcon: string;
+  placeholderText: string;
+  displayText: string;
+  isTextSelected: boolean;
+}) {
+  const {
+    width, height, background, fontFamily, showTitle, showButtons, iconPosition, searchIcon, placeholderText, displayText, isTextSelected
+  } = options;
+  // Clear
+  ctx.clearRect(0, 0, width, height);
+  // Background
+  if (background.startsWith('linear-gradient')) {
+    // Only support a few gradients for now
+    if (background.includes('#60a5fa') && background.includes('#a78bfa')) {
+      // Blue → Purple
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, '#60a5fa');
+      grad.addColorStop(1, '#a78bfa');
+      ctx.fillStyle = grad;
+    } else if (background.includes('#f472b6') && background.includes('#fb923c')) {
+      // Pink → Orange
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, '#f472b6');
+      grad.addColorStop(1, '#fb923c');
+      ctx.fillStyle = grad;
+    } else if (background.includes('#34d399') && background.includes('#06b6d4')) {
+      // Green → Teal
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, '#34d399');
+      grad.addColorStop(1, '#06b6d4');
+      ctx.fillStyle = grad;
+    } else if (background.includes('#6366f1') && background.includes('#22d3ee')) {
+      // Indigo → Cyan
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, '#6366f1');
+      grad.addColorStop(1, '#22d3ee');
+      ctx.fillStyle = grad;
+    } else if (background.includes('#ffffff') && background.includes('#f3f4f6')) {
+      // White → Light Gray
+      const grad = ctx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(1, '#f3f4f6');
+      ctx.fillStyle = grad;
+    } else {
+      ctx.fillStyle = '#fff';
+    }
+  } else {
+    ctx.fillStyle = background;
+  }
+  ctx.fillRect(0, 0, width, height);
+
+  // Title
+  if (showTitle) {
+    ctx.save();
+    ctx.font = `64px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#222';
+    ctx.globalAlpha = 0.95;
+    ctx.fillText('Search', width / 2, 180);
+    ctx.restore();
+  }
+
+  // Search box
+  const boxWidth = width * 0.7;
+  const boxHeight = 80;
+  const boxX = (width - boxWidth) / 2;
+  const boxY = showTitle ? 260 : width / 2 - boxHeight / 2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(boxX + 24, boxY);
+  ctx.lineTo(boxX + boxWidth - 24, boxY);
+  ctx.quadraticCurveTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + 24);
+  ctx.lineTo(boxX + boxWidth, boxY + boxHeight - 24);
+  ctx.quadraticCurveTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - 24, boxY + boxHeight);
+  ctx.lineTo(boxX + 24, boxY + boxHeight);
+  ctx.quadraticCurveTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - 24);
+  ctx.lineTo(boxX, boxY + 24);
+  ctx.quadraticCurveTo(boxX, boxY, boxX + 24, boxY);
+  ctx.closePath();
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.98;
+  ctx.shadowColor = '#0002';
+  ctx.shadowBlur = 16;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+  ctx.restore();
+
+  // Border
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(boxX + 24, boxY);
+  ctx.lineTo(boxX + boxWidth - 24, boxY);
+  ctx.quadraticCurveTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + 24);
+  ctx.lineTo(boxX + boxWidth, boxY + boxHeight - 24);
+  ctx.quadraticCurveTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - 24, boxY + boxHeight);
+  ctx.lineTo(boxX + 24, boxY + boxHeight);
+  ctx.quadraticCurveTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - 24);
+  ctx.lineTo(boxX, boxY + 24);
+  ctx.quadraticCurveTo(boxX, boxY, boxX + 24, boxY);
+  ctx.closePath();
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  // Icon
+  ctx.save();
+  ctx.font = '40px serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.globalAlpha = 0.9;
+  if (iconPosition === 'left') {
+    ctx.fillText(searchIcon, boxX + 32, boxY + boxHeight / 2);
+  } else {
+    ctx.fillText(searchIcon, boxX + boxWidth - 48, boxY + boxHeight / 2);
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // Text
+  ctx.save();
+  ctx.font = `32px ${fontFamily}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = isTextSelected ? '#fff' : '#222';
+  let textX = iconPosition === 'left' ? boxX + 80 : boxX + 32;
+  let textY = boxY + boxHeight / 2;
+  // Selection background
+  if (isTextSelected && displayText) {
+    const textWidth = ctx.measureText(displayText).width;
+    ctx.fillStyle = '#bfdbfe';
+    ctx.fillRect(textX - 4, textY - 24, textWidth + 8, 48);
+    ctx.fillStyle = '#222';
+  }
+  ctx.fillStyle = '#222';
+  ctx.fillText(displayText, textX, textY);
+  ctx.restore();
+
+  // Placeholder
+  if (!displayText) {
+    ctx.save();
+    ctx.font = `32px ${fontFamily}`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#d1d5db';
+    ctx.globalAlpha = 0.9;
+    ctx.fillText(placeholderText, textX, textY);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  // Cursor (not animated in export)
+  // Buttons
+  if (showButtons) {
+    ctx.save();
+    ctx.font = `20px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.globalAlpha = 0.97;
+    ctx.fillStyle = '#f9fafb';
+    ctx.strokeStyle = '#e5e7eb';
+    // Search button
+    ctx.beginPath();
+    ctx.roundRect(width / 2 - 120, boxY + boxHeight + 60, 110, 48, 18);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#444';
+    ctx.fillText('Search', width / 2 - 65, boxY + boxHeight + 84);
+    // Lucky button
+    ctx.fillStyle = '#f9fafb';
+    ctx.beginPath();
+    ctx.roundRect(width / 2 + 10, boxY + boxHeight + 60, 150, 48, 18);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#444';
+    ctx.fillText("I'm Feeling Lucky", width / 2 + 85, boxY + boxHeight + 84);
+    ctx.restore();
+  }
+}
+
+// Export video logic
+async function exportTypingAnimation({
+  canvas,
+  strings,
+  typingSpeed,
+  deleteSpeed,
+  pauseBetween,
+  loopAnimation,
+  keepLastString,
+  fastDelete,
+  showTitle,
+  showButtons,
+  iconPosition,
+  searchIcon,
+  placeholderText,
+  selectedFont,
+  backgroundStyle,
+  gradientType,
+  getCurrentBackground,
+  onProgress,
+}: any) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('No ctx');
+  // Animation state
+  let currentStringIndex = 0;
+  let currentCharIndex = 0;
+  let isDeleting = false;
+  let isTextSelected = false;
+  let displayText = '';
+  let done = false;
+  // Calculate total frames
+  const fps = 30;
+  const frameInterval = 1000 / fps;
+  let totalFrames = 0;
+  strings.forEach((string: string, index: number) => {
+    const typingFrames = Math.ceil(string.length * typingSpeed / frameInterval);
+    const shouldDelete = !keepLastString || index < strings.length - 1;
+    const deletionFrames = shouldDelete ? Math.ceil(string.length * deleteSpeed / frameInterval) : 0;
+    let pauseFrames = Math.ceil(pauseBetween / frameInterval);
+    if (keepLastString && index === strings.length - 1) pauseFrames = 0;
+    totalFrames += typingFrames + pauseFrames + deletionFrames;
+    if (fastDelete && shouldDelete) totalFrames += Math.ceil(200 / frameInterval); // selection
+  });
+  totalFrames += fps * 1; // last frame hold
+  let frameCount = 0;
+  console.log('[export] Starting export. Total frames:', totalFrames, 'FPS:', fps);
+  // MediaRecorder setup
+  const stream = canvas.captureStream(fps);
+  console.log('[export] Canvas stream:', stream);
+  const recordedChunks: BlobPart[] = [];
+  let recorder: MediaRecorder;
+  let recorderError = null;
+  try {
+    try {
+      recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+      console.log('[export] MediaRecorder created with video/webm;codecs=vp9');
+    } catch (e1) {
+      console.warn('[export] MediaRecorder failed with vp9, trying video/webm', e1);
+      try {
+        recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        console.log('[export] MediaRecorder created with video/webm');
+      } catch (e2) {
+        console.warn('[export] MediaRecorder failed with video/webm, trying default', e2);
+        try {
+          recorder = new MediaRecorder(stream);
+          console.log('[export] MediaRecorder created with default options');
+        } catch (e3) {
+          console.error('[export] MediaRecorder error: all attempts failed', e3);
+          recorderError = e3;
+          throw e3;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[export] MediaRecorder error:', e);
+    throw e;
+  }
+  // Force a frame draw before starting MediaRecorder
+  renderSearchFrame(ctx, {
+    width,
+    height,
+    background: getCurrentBackground(),
+    fontFamily: selectedFont,
+    showTitle,
+    showButtons,
+    iconPosition,
+    searchIcon,
+    placeholderText,
+    displayText: '',
+    isTextSelected: false,
+  });
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) recordedChunks.push(e.data);
+  };
+  const startPromise = new Promise<void>(resolve => {
+    recorder.onstart = () => {
+      console.log('[export] MediaRecorder started');
+      resolve();
+    };
+  });
+  const stopPromise = new Promise<void>(resolve => {
+    recorder.onstop = () => {
+      console.log('[export] MediaRecorder stopped');
+      resolve();
+    };
+  });
+  console.log('[export] Calling recorder.start()...');
+  try {
+    recorder.start();
+    console.log('[export] recorder.start() called');
+  } catch (e) {
+    console.error('[export] recorder.start() threw:', e);
+    throw e;
+  }
+  await startPromise;
+  // Animation loop using requestAnimationFrame
+  let elapsed = 0;
+  let phase: 'typing' | 'pause' | 'deleting' | 'fastDeleteSelect' | 'fastDeleteClear' = 'typing';
+  let pauseStart = 0;
+  function getBackground() {
+    return getCurrentBackground();
+  }
+  let lastTimestamp = performance.now();
+  let animationResolve: (value: void) => void;
+  let animationPromise = new Promise<void>(resolve => { animationResolve = resolve; });
+  let timeoutId: any;
+  let lastLoggedPercent = 0;
+  function step(now: number) {
+    const delta = now - lastTimestamp;
+    if (delta < frameInterval - 2) {
+      requestAnimationFrame(step);
+      return;
+    }
+    lastTimestamp = now;
+    // Render frame
+    renderSearchFrame(ctx, {
+      width,
+      height,
+      background: getBackground(),
+      fontFamily: selectedFont,
+      showTitle,
+      showButtons,
+      iconPosition,
+      searchIcon,
+      placeholderText,
+      displayText,
+      isTextSelected,
+    });
+    frameCount++;
+    if (onProgress) onProgress(frameCount, totalFrames);
+    // Log progress every 10%
+    const percent = Math.floor((frameCount / totalFrames) * 100);
+    if (percent >= lastLoggedPercent + 10) {
+      lastLoggedPercent = percent;
+      console.log(`[export] Progress: ${percent}% (${frameCount}/${totalFrames})`);
+    }
+    elapsed += frameInterval;
+    switch (phase) {
+      case 'typing': {
+        if (currentCharIndex < strings[currentStringIndex].length) {
+          currentCharIndex++;
+          displayText = strings[currentStringIndex].substring(0, currentCharIndex);
+        } else {
+          phase = 'pause';
+          pauseStart = elapsed;
+        }
+        break;
+      }
+      case 'pause': {
+        if (elapsed - pauseStart >= pauseBetween) {
+          if (fastDelete) {
+            phase = 'fastDeleteSelect';
+            isTextSelected = true;
+          } else {
+            phase = 'deleting';
+          }
+        }
+        break;
+      }
+      case 'fastDeleteSelect': {
+        // Show selection for 200ms
+        if (elapsed - pauseStart >= pauseBetween + 200) {
+          phase = 'fastDeleteClear';
+          isTextSelected = false;
+          displayText = '';
+          currentCharIndex = 0;
+        }
+        break;
+      }
+      case 'fastDeleteClear': {
+        // Move to next string
+        const nextIndex = (currentStringIndex + 1) % strings.length;
+        if (!loopAnimation && nextIndex === 0 && currentStringIndex > 0) {
+          done = true;
+        } else if (keepLastString && nextIndex === 0 && !loopAnimation) {
+          done = true;
+        } else {
+          currentStringIndex = nextIndex;
+          currentCharIndex = 0;
+          displayText = '';
+          phase = 'typing';
+        }
+        break;
+      }
+      case 'deleting': {
+        if (currentCharIndex > 0) {
+          currentCharIndex--;
+          displayText = strings[currentStringIndex].substring(0, currentCharIndex);
+        } else {
+          // Move to next string
+          const nextIndex = (currentStringIndex + 1) % strings.length;
+          if (!loopAnimation && nextIndex === 0 && currentStringIndex > 0) {
+            done = true;
+          } else if (keepLastString && nextIndex === 0 && !loopAnimation) {
+            done = true;
+          } else {
+            currentStringIndex = nextIndex;
+            currentCharIndex = 0;
+            displayText = '';
+            phase = 'typing';
+          }
+        }
+        break;
+      }
+    }
+    if (!done && frameCount < totalFrames) {
+      requestAnimationFrame(step);
+    } else {
+      console.log('[export] Animation finished. Total frames rendered:', frameCount);
+      animationResolve();
+    }
+  }
+  // Timeout fallback (2x expected duration)
+  timeoutId = setTimeout(() => {
+    done = true;
+    console.log('[export] Timeout fallback triggered. Forcing finish.');
+    animationResolve();
+  }, (totalFrames * frameInterval) * 2);
+  requestAnimationFrame(step);
+  await animationPromise;
+  clearTimeout(timeoutId);
+  // Render last frame for a bit
+  for (let i = 0; i < fps * 1; i++) {
+    renderSearchFrame(ctx, {
+      width,
+      height,
+      background: getBackground(),
+      fontFamily: selectedFont,
+      showTitle,
+      showButtons,
+      iconPosition,
+      searchIcon,
+      placeholderText,
+      displayText,
+      isTextSelected,
+    });
+    frameCount++;
+    if (onProgress) onProgress(frameCount, totalFrames);
+    await new Promise(r => setTimeout(r, frameInterval));
+  }
+  recorder.stop();
+  await stopPromise;
+  if (onProgress) onProgress(totalFrames, totalFrames);
+  console.log('[export] Export complete. Blob size:',
+    recordedChunks.reduce((s, c) => {
+      if (typeof c === 'string') return s + c.length;
+      if (c instanceof Blob) return s + c.size;
+      if (c instanceof ArrayBuffer) return s + c.byteLength;
+      return s;
+    }, 0)
+  );
+  return new Blob(recordedChunks, { type: 'video/webm' });
+}
 
 function App() {
   // Helper to get settings from localStorage
@@ -69,6 +535,9 @@ function App() {
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const cursorIntervalRef = useRef<ReturnType<typeof setTimeout>>();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
 
   const GRADIENT_OPTIONS = [
     { label: 'Blue → Purple', value: 'blue-purple', style: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)' },
@@ -376,6 +845,58 @@ function App() {
               title="Reset"
             >
               <Square className="w-5 h-5" />
+            </button>
+            {/* Export Video Button */}
+            <button
+              onClick={async () => {
+                if (!canvasRef.current) return;
+                setIsExporting(true);
+                setExportProgress(0);
+                try {
+                  const videoBlob = await exportTypingAnimation({
+                    canvas: canvasRef.current,
+                    strings,
+                    typingSpeed,
+                    deleteSpeed,
+                    pauseBetween,
+                    loopAnimation,
+                    keepLastString,
+                    fastDelete,
+                    showTitle,
+                    showButtons,
+                    iconPosition,
+                    searchIcon,
+                    placeholderText,
+                    selectedFont,
+                    backgroundStyle,
+                    gradientType,
+                    getCurrentBackground,
+                    onProgress: (current: number, total: number) => {
+                      setExportProgress(current / total);
+                    },
+                  });
+                  const url = URL.createObjectURL(videoBlob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'typing-simulation.webm';
+                  document.body.appendChild(a);
+                  a.click();
+                  setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }, 100);
+                } catch (e) {
+                  alert('Export failed: ' + e);
+                } finally {
+                  setIsExporting(false);
+                  setExportProgress(0);
+                }
+              }}
+              disabled={isExporting}
+              className="group flex items-center justify-center w-10 h-10 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed shadow transition-colors"
+              title="Export as Video"
+            >
+              <Download className="w-5 h-5" />
             </button>
             <div className="w-px h-8 bg-gray-300 mx-3" />
             <a
@@ -751,6 +1272,31 @@ function App() {
           <div className="text-[10px] text-gray-300">built on {import.meta.env.VITE_BUILD_DATE || 'development'}</div>
         </div>
       </footer>
+
+      {/* Hidden Canvas for Video Export */}
+      <canvas
+        ref={canvasRef}
+        width={1024}
+        height={1024}
+        style={{ position: 'fixed', left: '-9999px', top: '0', pointerEvents: 'none', opacity: 0 }}
+      />
+
+      {/* Optionally, show a loading indicator while exporting */}
+      {isExporting && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center">
+            <svg className="animate-spin h-8 w-8 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+            <div className="text-lg font-semibold text-gray-700">Exporting video...</div>
+            <div className="w-full mt-4 mb-2">
+              <div className="h-3 w-64 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 transition-all" style={{ width: `${Math.round(exportProgress * 100)}%` }}></div>
+              </div>
+              <div className="text-xs text-gray-500 text-center mt-1">{Math.round(exportProgress * 100)}%</div>
+            </div>
+            <div className="text-sm text-gray-500 mt-2">This may take a few seconds.</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
