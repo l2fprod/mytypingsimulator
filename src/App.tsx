@@ -350,7 +350,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16">
           <div className="flex items-center space-x-3">
             <img src="/logo.svg" alt="Logo" className="w-9 h-9 rounded-xl" />
-            <span className="text-ml font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Typing Simulator</span>
+            <span className="text-ml font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">My Typing Simulator</span>
           </div>
           <div className="flex items-center space-x-2">
             <button
