@@ -388,7 +388,12 @@ async function exportTypingAnimation({
         break;
       }
       case 'pause': {
-        if (elapsed - pauseStart >= pauseBetween) {
+        // If keepLastString is enabled and this is the last string, end after pause
+        if (keepLastString && currentStringIndex === strings.length - 1 && !loopAnimation) {
+          if (elapsed - pauseStart >= pauseBetween) {
+            done = true;
+          }
+        } else if (elapsed - pauseStart >= pauseBetween) {
           if (fastDelete) {
             phase = 'fastDeleteSelect';
             isTextSelected = true;
@@ -872,7 +877,8 @@ function App() {
                     gradientType,
                     getCurrentBackground,
                     onProgress: (current: number, total: number) => {
-                      setExportProgress(current / total);
+                      const progress = Math.min(current / total, 1);
+                      setExportProgress(progress);
                     },
                   });
                   const url = URL.createObjectURL(videoBlob);
@@ -885,6 +891,7 @@ function App() {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                   }, 100);
+                  setExportProgress(1);
                 } catch (e) {
                   alert('Export failed: ' + e);
                 } finally {
