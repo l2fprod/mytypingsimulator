@@ -1,0 +1,8 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blue circular background -->
+  <circle cx="32" cy="32" r="32" fill="#2563eb"/>
+  <!-- White textfield (rounded rectangle) -->
+  <rect x="16" y="26" width="32" height="12" rx="6" fill="#fff"/>
+  <!-- White caret -->
+  <rect x="32" y="28" width="2.5" height="8" rx="1.25" fill="#2563eb"/>
+</svg> 

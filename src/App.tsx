@@ -346,11 +346,11 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Modern Header Bar */}
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16">
           <div className="flex items-center space-x-3">
-            <img src="/vite.svg" alt="Logo" className="w-9 h-9 rounded-xl shadow" />
-            <span className="text-2xl font-extrabold tracking-tight text-gray-900">Typing Simulator</span>
+            <img src="/logo.svg" alt="Logo" className="w-9 h-9 rounded-xl" />
+            <span className="text-ml font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Typing Simulator</span>
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -381,9 +381,9 @@ function App() {
       </header>
 
       {/* Main Layout */}
-      <div className="flex-1 flex flex-row h-full max-h-[calc(100vh-56px)]">
+      <div className="flex-1 flex flex-row h-full min-h-0 overflow-hidden">
         {/* Left Sidebar - Search Strings */}
-        <aside className="w-80 bg-white/70 backdrop-blur border-r border-gray-200 p-6 flex flex-col gap-4 shadow-inner rounded-tr-3xl rounded-br-3xl mt-4 mb-4 ml-2">
+        <aside className="w-80 bg-white/70 backdrop-blur border-r border-gray-200 p-6 flex flex-col gap-4 shadow-inner rounded-tr-3xl rounded-br-3xl mt-4 mb-4 ml-2 min-h-0 overflow-y-auto">
           <div className="flex items-center mb-2 gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 text-blue-600 rounded-lg"><Plus className="w-4 h-4" /></span>
             <h3 className="text-lg font-semibold text-gray-900">Search Strings</h3>
@@ -445,7 +445,7 @@ function App() {
         </aside>
 
         {/* Center - Search Simulation */}
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex-1 flex items-center justify-center p-8 min-h-0 overflow-y-auto">
           <div
             className="w-full max-w-2xl aspect-square flex flex-col justify-center items-center rounded-3xl shadow-2xl border border-gray-100 p-12"
             style={{
@@ -502,7 +502,7 @@ function App() {
         </div>
 
         {/* Right Sidebar - Settings */}
-        <aside className="w-80 bg-white/70 backdrop-blur border-l border-gray-200 p-6 flex flex-col gap-6 shadow-inner rounded-tl-3xl rounded-bl-3xl mt-4 mb-4 mr-2">
+        <aside className="w-80 bg-white/70 backdrop-blur border-l border-gray-200 p-6 flex flex-col gap-6 shadow-inner rounded-tl-3xl rounded-bl-3xl mt-4 mb-4 mr-2 min-h-0 overflow-y-auto">
           <div className="space-y-6">
             {/* Animation Settings */}
             <div className="space-y-4">
@@ -716,9 +716,10 @@ function App() {
       </div>
 
       {/* Modern Footer */}
-      <footer className="sticky bottom-0 z-20 w-full bg-white/80 backdrop-blur border-t shadow-sm py-2">
+      <footer className="mt-auto w-full bg-white/80 backdrop-blur border-t shadow-sm py-2">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
-          © 2024 Frederic Lavigne. All rights reserved.
+          made by <a href="https://www.linkedin.com/in/fredlavigne/" target="_blank" rel="noopener noreferrer">fred</a> with his AI minions 🤖
+          <div className="text-[10px] text-gray-300">built on {import.meta.env.VITE_BUILD_DATE || 'development'}</div>
         </div>
       </footer>
     </div>
