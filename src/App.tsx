@@ -201,7 +201,6 @@ function renderSearchFrame(ctx: CanvasRenderingContext2D, options: {
     ctx.restore();
   }
 
-  // Cursor (not animated in export)
   // Buttons
   if (showButtons) {
     ctx.save();
@@ -211,21 +210,36 @@ function renderSearchFrame(ctx: CanvasRenderingContext2D, options: {
     ctx.globalAlpha = 0.97;
     ctx.fillStyle = '#f9fafb';
     ctx.strokeStyle = '#e5e7eb';
+    // --- Calculate button sizes dynamically based on text width and padding ---
+    const buttonPaddingX = 50; // px left/right padding (increased for more space)
+    const buttonHeight = 48;
+    const buttonRadius = 18;
+    const searchText = 'Search';
+    const luckyText = "I'm Feeling Lucky";
+    const searchTextWidth = ctx.measureText(searchText).width;
+    const luckyTextWidth = ctx.measureText(luckyText).width;
+    const searchButtonWidth = searchTextWidth + buttonPaddingX * 2;
+    const luckyButtonWidth = luckyTextWidth + buttonPaddingX * 2;
+    // --- Position buttons with spacing ---
+    const buttonSpacing = 24;
+    const totalButtonsWidth = searchButtonWidth + luckyButtonWidth + buttonSpacing;
+    const buttonsStartX = width / 2 - totalButtonsWidth / 2;
+    const buttonsY = boxY + boxHeight + boxMarginBottom;
     // Search button
     ctx.beginPath();
-    ctx.roundRect(width / 2 - 120, boxY + boxHeight + boxMarginBottom, 110, 48, 18);
+    ctx.roundRect(buttonsStartX, buttonsY, searchButtonWidth, buttonHeight, buttonRadius);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#444';
-    ctx.fillText('Search', width / 2 - 65, boxY + boxHeight + boxMarginBottom + 24);
+    ctx.fillText(searchText, buttonsStartX + searchButtonWidth / 2, buttonsY + buttonHeight / 2);
     // Lucky button
     ctx.fillStyle = '#f9fafb';
     ctx.beginPath();
-    ctx.roundRect(width / 2 + 10, boxY + boxHeight + boxMarginBottom, 150, 48, 18);
+    ctx.roundRect(buttonsStartX + searchButtonWidth + buttonSpacing, buttonsY, luckyButtonWidth, buttonHeight, buttonRadius);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#444';
-    ctx.fillText("I'm Feeling Lucky", width / 2 + 85, boxY + boxHeight + boxMarginBottom + 24);
+    ctx.fillText(luckyText, buttonsStartX + searchButtonWidth + buttonSpacing + luckyButtonWidth / 2, buttonsY + buttonHeight / 2);
     ctx.restore();
   }
 }
